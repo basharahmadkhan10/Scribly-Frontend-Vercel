@@ -1,4 +1,4 @@
-import axios from "../utils/axios";
+import api from "../utils/api";
 
 class GeminiService {
   isServiceAvailable() {
