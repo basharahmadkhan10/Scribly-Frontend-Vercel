@@ -4,7 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import Layout from "./components/Layout";
 import Preloader from "./components/Preloader";
 import ErrorBoundary from "./components/ErrorBoundary";
-import ProtectedRoute from "./components/ProtectedRoute"; // Add this
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Static lazy imports
 const Home = lazy(() => import("./pages/Home"));
@@ -21,10 +21,21 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPreloader(false);
-    }, 3000);
+    }, 2000); // Reduced to 2 seconds for better UX
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Component to redirect logged-in users away from auth pages
+  const PublicOnlyRoute = ({ children }) => {
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    
+    if (token) {
+      return <Navigate to="/" replace />;
+    }
+    
+    return children;
+  };
 
   return (
     <ErrorBoundary>
@@ -34,50 +45,69 @@ function App() {
         <Suspense fallback={<Preloader minimal />}>
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
+              {/* Home - Public */}
               <Route
                 path="/"
                 element={
-                  <Layout type="default">
+                  <Layout>
                     <Home />
                   </Layout>
                 }
               />
+
+              {/* Auth Pages - Only accessible when NOT logged in */}
               <Route
                 path="/login"
                 element={
-                  <Layout type="auth">
-                    <Login />
-                  </Layout>
+                  <PublicOnlyRoute>
+                    <Layout>
+                      <Login />
+                    </Layout>
+                  </PublicOnlyRoute>
                 }
               />
+              
               <Route
                 path="/signup"
                 element={
-                  <Layout type="auth">
-                    <Signup />
-                  </Layout>
+                  <PublicOnlyRoute>
+                    <Layout>
+                      <Signup />
+                    </Layout>
+                  </PublicOnlyRoute>
                 }
               />
+
+              {/* Protected Pages - Require authentication */}
               <Route
                 path="/notes"
                 element={
-                  <ProtectedRoute> {/* Wrap with ProtectedRoute */}
-                    <Layout type="protected">
+                  <ProtectedRoute>
+                    <Layout>
                       <Notes />
                     </Layout>
                   </ProtectedRoute>
                 }
               />
+              
               <Route
                 path="/publicnotes"
                 element={
-                  <Layout type="protected">
+                  <Layout>
                     <PublicNotes />
                   </Layout>
                 }
               />
-              {/* Add a fallback redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+
+              {/* 404 Page */}
+              <Route
+                path="*"
+                element={
+                  <Layout>
+                    <NotFound />
+                  </Layout>
+                }
+              />
             </Routes>
           </AnimatePresence>
         </Suspense>
