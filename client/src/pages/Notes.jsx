@@ -32,6 +32,7 @@ export default function NotesPage() {
   const [suggestions, setSuggestions] = useState([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [aiProcessing, setAiProcessing] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -211,11 +212,20 @@ export default function NotesPage() {
 
   // Add this function for AI text updates
   const handleAITextUpdate = (updatedText) => {
-    setNewNote((prev) => ({
-      ...prev,
-      content: updatedText,
-    }));
-  };
+  setNewNote(prev => ({
+    ...prev,
+    content: updatedText
+  }));
+  
+  // Scroll to top of textarea to see the updated content
+  setTimeout(() => {
+    const textarea = document.querySelector('textarea[name="content"]');
+    if (textarea) {
+      textarea.scrollTop = 0;
+      textarea.focus();
+    }
+  }, 100);
+};
 
   const filteredNotes = notes.filter((note) => {
     const title = note.title || "";
@@ -613,3 +623,4 @@ export default function NotesPage() {
     </div>
   );
 }
+
