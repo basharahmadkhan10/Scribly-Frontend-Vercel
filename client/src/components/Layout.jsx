@@ -1,29 +1,45 @@
-import { motion } from 'framer-motion';
-import PropTypes from 'prop-types';
+// components/Layout.jsx
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
-const layoutStyles = {
-  default: '',
-  auth: 'bg-gradient-to-br from-gray-50 to-blue-50',
-  protected: 'bg-white'
-};
+const Layout = ({ children, type = 'default' }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
-export default function Layout({ children, type = 'default' }) {
+  useEffect(() => {
+    // Handle auth redirection based on layout type
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    
+    if (type === 'auth' && token) {
+      // If user is logged in and tries to access login/signup, redirect to home
+      navigate('/');
+    }
+    
+    if (type === 'protected' && !token) {
+      // If user is not logged in and tries to access protected route
+      navigate('/login', { state: { from: location } });
+    }
+  }, [type, navigate, location]);
+
+  // If it's a protected route and no token, don't render children
+  if (type === 'protected') {
+    const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+    if (!token) {
+      return null; // or a loading spinner
+    }
+  }
+
   return (
-    <motion.main
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.35 }}
-      className={`min-h-screen ${layoutStyles[type]}`}
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow">
         {children}
-      </div>
-    </motion.main>
+      </main>
+      <Footer />
+    </div>
   );
-}
-
-Layout.propTypes = {
-  children: PropTypes.node.isRequired,
-  type: PropTypes.oneOf(['default', 'auth', 'protected'])
 };
+
+export default Layout;
