@@ -14,7 +14,7 @@ import {
   Settings,
   Wand2
 } from 'lucide-react';
-import geminiService from '../services/gemini.service';
+import aiService from '../services/ai.service';
 
 const AISummarizer = ({ text, onTextUpdate }) => {
   const [loading, setLoading] = useState(false);
