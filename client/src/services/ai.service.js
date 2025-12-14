@@ -1,51 +1,63 @@
+import axios from 'axios';
 
-import api from './api'; // Your Axios instance that points to backend
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 const aiService = {
-  summarizeText: async (text) => {
-    const response = await api.post('/ai/summarize', { text });
-    return response.data.result || response.data;
-  },
-  
-  improveWriting: async (text) => {
-    const response = await api.post('/ai/improve', { text });
-    return response.data.result || response.data;
-  },
-  
-  extractKeyPoints: async (text) => {
-    const response = await api.post('/ai/key-points', { text });
-    return response.data.result || response.data;
-  },
-  
-  changeTone: async (text, tone) => {
-    const response = await api.post('/ai/change-tone', { text, tone });
-    return response.data.result || response.data;
-  },
-  
-  generateTags: async (text) => {
-    const response = await api.post('/ai/generate-tags', { text });
-    return response.data.result || response.data;
-  },
-  
-  expandIdea: async (text) => {
-    const response = await api.post('/ai/expand', { text });
-    return response.data.result || response.data;
-  },
-  
-  translate: async (text, language) => {
-    const response = await api.post('/ai/translate', { text, language });
-    return response.data.result || response.data;
-  },
-  
+  // Test connection
   testConnection: async () => {
     try {
-      await api.get('/ai/health');
-      return true;
-    } catch {
+      const response = await api.get('/ai/health');
+      return response.data.success;
+    } catch (error) {
+      console.error('Backend connection failed:', error);
       return false;
     }
   },
-  
+
+  // AI Actions
+  summarizeText: async (text) => {
+    const response = await api.post('/ai/summarize', { text });
+    return response.data.result;
+  },
+
+  improveWriting: async (text) => {
+    const response = await api.post('/ai/improve', { text });
+    return response.data.result;
+  },
+
+  extractKeyPoints: async (text) => {
+    const response = await api.post('/ai/key-points', { text });
+    return response.data.result;
+  },
+
+  changeTone: async (text, tone) => {
+    const response = await api.post('/ai/change-tone', { text, tone });
+    return response.data.result;
+  },
+
+  generateTags: async (text) => {
+    const response = await api.post('/ai/generate-tags', { text });
+    return response.data.result;
+  },
+
+  expandIdea: async (text) => {
+    const response = await api.post('/ai/expand', { text });
+    return response.data.result;
+  },
+
+  translate: async (text, language) => {
+    const response = await api.post('/ai/translate', { text, language });
+    return response.data.result;
+  },
+
   isServiceAvailable: () => true
 };
 
