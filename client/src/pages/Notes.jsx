@@ -47,7 +47,7 @@ export default function NotesPage() {
 
   const handleGoogleLink = () => {
     if (!token) return alert("Please login first");
-    window.open(`http://localhost:9000/auth/google?token=${token}`, "_blank");
+    window.open(`https://scribly-backend-render.onrender.com/auth/google?token=${token}`, "_blank");
     setIsMenuOpen(false);
   };
 
@@ -531,4 +531,5 @@ export default function NotesPage() {
       </div>
     </div>
   );
+
 }
