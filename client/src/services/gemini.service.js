@@ -1,24 +1,16 @@
-import api from "../utils/api";
+import api from "../api/api";
 
-class GeminiService {
-  isServiceAvailable() {
-    return true;
-  }
+export const summarize = async (text) => {
+  const res = await api.post("/ai/summarize", { text });
+  return res.data.data.result;
+};
 
-  async summarizeText(text) {
-    const res = await axios.post("/api/ai/summarize", { text });
-    return res.data.result;
-  }
+export const improve = async (text) => {
+  const res = await api.post("/ai/improve", { text });
+  return res.data.data.result;
+};
 
-  async improveWriting(text) {
-    const res = await axios.post("/api/ai/improve", { text });
-    return res.data.result;
-  }
-
-  async changeTone(text, tone) {
-    const res = await axios.post("/api/ai/tone", { text, tone });
-    return res.data.result;
-  }
-}
-
-export default new GeminiService();
+export const changeTone = async (text, tone) => {
+  const res = await api.post("/ai/tone", { text, tone });
+  return res.data.data.result;
+};
