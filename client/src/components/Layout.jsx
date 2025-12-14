@@ -1,6 +1,6 @@
 // components/Layout.jsx
-const Layout = ({ children, type = 'default' }) => {
-  return <div className="min-h-screen">{children}</div>;
+const Layout = ({ children }) => {
+  return <div className="min-h-screen bg-gray-50">{children}</div>;
 };
 
 export default Layout;
