@@ -16,46 +16,54 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 function App() {
   const location = useLocation();
   const [showPreloader, setShowPreloader] = useState(true);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Listen for auth changes
   useEffect(() => {
-    // Check auth status
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
-    setIsCheckingAuth(false);
+    const checkAuth = () => {
+      const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+    
+    // Also listen for storage changes
+    const handleStorageChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener("storage", handleStorageChange);
     
     const timer = setTimeout(() => {
       setShowPreloader(false);
     }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   // Custom Protected Route component (inline)
   const ProtectedRoute = ({ children }) => {
-    if (isCheckingAuth) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      );
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    
+    if (!token) {
+      return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
     
-    return isAuthenticated ? children : <Navigate to="/login" replace />;
+    return children;
   };
 
   // Public Only Route (for login/signup when already logged in)
   const PublicOnlyRoute = ({ children }) => {
-    if (isCheckingAuth) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      );
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+    
+    if (token) {
+      return <Navigate to="/" replace />;
     }
     
-    return !isAuthenticated ? children : <Navigate to="/" replace />;
+    return children;
   };
 
   if (showPreloader) {
@@ -83,7 +91,7 @@ function App() {
               element={
                 <PublicOnlyRoute>
                   <Layout>
-                    <Login />
+                    <Login setIsAuthenticated={setIsAuthenticated} />
                   </Layout>
                 </PublicOnlyRoute>
               }
