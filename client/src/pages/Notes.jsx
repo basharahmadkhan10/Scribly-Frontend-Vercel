@@ -155,19 +155,61 @@ export default function NotesPage() {
     }
   };
 
-  const handleLogout = async () => {
+ const handleLogout = async () => {
     try {
-      await api.post(
-        "/api/v1/users/logout",
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      localStorage.removeItem("token");
-      navigate("/");
+        // Clear ALL possible token storage locations first
+        const tokenKeys = [
+            "token", 
+            "accessToken", 
+            "refreshToken",
+            "user",
+            "authToken",
+            "auth"
+        ];
+        
+        tokenKeys.forEach(key => {
+            localStorage.removeItem(key);
+            sessionStorage.removeItem(key);
+        });
+        
+        // Clear cookies (if any)
+        document.cookie.split(";").forEach(cookie => {
+            const eqPos = cookie.indexOf("=");
+            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+            // Clear auth-related cookies
+            if (name.includes("token") || name.includes("auth")) {
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+        });
+        
+        // Remove authorization header from axios defaults
+        delete axios.defaults.headers.common['Authorization'];
+        
+        // Call logout API
+        await api.post(
+            "/api/v1/users/logout",
+            {},
+            { 
+                withCredentials: true, // Important for cookie-based auth
+                headers: { Authorization: `Bearer ${token}` } 
+            }
+        );
+        
+        // Clear any application state
+        setToken(null);
+        setUser(null);
+        
+        // Force a hard redirect to clear any cached data
+        window.location.href = "/";
+        
     } catch (err) {
-      console.error("Logout failed:", err.message);
+        console.error("Logout failed:", err.message);
+        // Still clear local storage even if API call fails
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/";
     }
-  };
+};
 
   const filteredNotes = notes.filter((note) => {
     const title = note.title || "";
@@ -533,3 +575,4 @@ export default function NotesPage() {
   );
 
 }
+
