@@ -25,16 +25,19 @@ const AISummarizer = ({ text, onTextUpdate }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   // Test connection on component mount
-  useEffect(() => {
-    const testConnection = async () => {
-      if (geminiService.isServiceAvailable() && !connectionTested) {
-        const connected = await geminiService.testConnection();
-        setIsConnected(connected);
-        setConnectionTested(true);
+useEffect(() => {
+  const testConnection = async () => {
+    if (!connectionTested) {
+      const connected = await aiService.testConnection();
+      setIsConnected(connected);
+      setConnectionTested(true);
+      if (!connected) {
+        setError('⚠️ Cannot connect to AI backend. Make sure it\'s running on http://localhost:5000');
       }
-    };
-    testConnection();
-  }, []);
+    }
+  };
+  testConnection();
+}, []);
 
   const handleAIAction = async (action, options = {}) => {
     if (!text || text.trim().length < 10) {
