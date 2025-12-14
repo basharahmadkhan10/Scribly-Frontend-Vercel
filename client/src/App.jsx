@@ -1,24 +1,17 @@
 import { lazy, Suspense, useState, useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Layout from "./components/Layout";
 import Preloader from "./components/Preloader";
-import AuthWrapper from "./components/AuthWrapper";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-const lazyLoad = (path) =>
-  lazy(() =>
-    import(`./pages/${path}`).catch(() => ({
-      default: () => <div>Failed to load component</div>,
-    }))
-  );
-
-const Home = lazyLoad("Home");
-const Login = lazyLoad("Login");
-const Signup = lazyLoad("Signup");
-const Notes = lazyLoad("Notes");
-const NotFound = lazyLoad("NotFound");
-const PublicNotes = lazyLoad("PublicNotesPage");
+// Static lazy imports
+const Home = lazy(() => import("./pages/Home"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Notes = lazy(() => import("./pages/Notes"));
+const PublicNotes = lazy(() => import("./pages/PublicNotesPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
   const location = useLocation();
@@ -27,7 +20,7 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPreloader(false);
-    }, 5000);
+    }, 3000); // Reduced to 3 seconds
 
     return () => clearTimeout(timer);
   }, []);
@@ -80,15 +73,8 @@ function App() {
                   </Layout>
                 }
               />
-
-              <Route
-                path="*"
-                element={
-                  <Layout type="default">
-                    <NotFound />
-                  </Layout>
-                }
-              />
+              {/* Add a fallback redirect */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>
         </Suspense>
