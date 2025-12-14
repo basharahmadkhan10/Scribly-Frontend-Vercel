@@ -4,6 +4,7 @@ import { AnimatePresence } from "framer-motion";
 import Layout from "./components/Layout";
 import Preloader from "./components/Preloader";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoute"; // Add this
 
 // Static lazy imports
 const Home = lazy(() => import("./pages/Home"));
@@ -20,7 +21,7 @@ function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowPreloader(false);
-    }, 3000); // Reduced to 3 seconds
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -60,9 +61,11 @@ function App() {
               <Route
                 path="/notes"
                 element={
-                  <Layout type="protected">
-                    <Notes />
-                  </Layout>
+                  <ProtectedRoute> {/* Wrap with ProtectedRoute */}
+                    <Layout type="protected">
+                      <Notes />
+                    </Layout>
+                  </ProtectedRoute>
                 }
               />
               <Route
