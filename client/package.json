@@ -8,6 +8,8 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "lucide-react": "^0.344.0",
     "@react-oauth/google": "^0.12.2",
     "axios": "^1.10.0",
     "framer-motion": "^12.23.6",
@@ -28,3 +30,4 @@
     "vite": "^5.1.0"
   }
 }
+
