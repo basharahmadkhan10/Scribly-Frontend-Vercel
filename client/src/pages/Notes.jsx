@@ -14,6 +14,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import AISummarizer from "../components/AISummarizer"; // Add this import
+import axios from "axios"; // Add axios import for logout
 
 export default function NotesPage() {
   const [darkMode, setDarkMode] = useState(false);
@@ -155,61 +157,65 @@ export default function NotesPage() {
     }
   };
 
- const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
-        // Clear ALL possible token storage locations first
-        const tokenKeys = [
-            "token", 
-            "accessToken", 
-            "refreshToken",
-            "user",
-            "authToken",
-            "auth"
-        ];
-        
-        tokenKeys.forEach(key => {
-            localStorage.removeItem(key);
-            sessionStorage.removeItem(key);
-        });
-        
-        // Clear cookies (if any)
-        document.cookie.split(";").forEach(cookie => {
-            const eqPos = cookie.indexOf("=");
-            const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-            // Clear auth-related cookies
-            if (name.includes("token") || name.includes("auth")) {
-                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-            }
-        });
-        
-        // Remove authorization header from axios defaults
-        delete axios.defaults.headers.common['Authorization'];
-        
-        // Call logout API
-        await api.post(
-            "/api/v1/users/logout",
-            {},
-            { 
-                withCredentials: true, // Important for cookie-based auth
-                headers: { Authorization: `Bearer ${token}` } 
-            }
-        );
-        
-        // Clear any application state
-        setToken(null);
-        setUser(null);
-        
-        // Force a hard redirect to clear any cached data
-        window.location.href = "/";
-        
+      // Clear ALL possible token storage locations first
+      const tokenKeys = [
+        "token",
+        "accessToken",
+        "refreshToken",
+        "user",
+        "authToken",
+        "auth",
+      ];
+
+      tokenKeys.forEach((key) => {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+
+      // Clear cookies (if any)
+      document.cookie.split(";").forEach((cookie) => {
+        const eqPos = cookie.indexOf("=");
+        const name =
+          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        // Clear auth-related cookies
+        if (name.includes("token") || name.includes("auth")) {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+        }
+      });
+
+      // Remove authorization header from axios defaults
+      delete axios.defaults.headers.common["Authorization"];
+
+      // Call logout API
+      await api.post(
+        "/api/v1/users/logout",
+        {},
+        {
+          withCredentials: true, // Important for cookie-based auth
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Force a hard redirect to clear any cached data
+      window.location.href = "/";
     } catch (err) {
-        console.error("Logout failed:", err.message);
-        // Still clear local storage even if API call fails
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/";
+      console.error("Logout failed:", err.message);
+      // Still clear local storage even if API call fails
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/";
     }
-};
+  };
+
+  // Add this function for AI text updates
+  const handleAITextUpdate = (updatedText) => {
+    setNewNote((prev) => ({
+      ...prev,
+      content: updatedText,
+    }));
+  };
 
   const filteredNotes = notes.filter((note) => {
     const title = note.title || "";
@@ -312,7 +318,7 @@ export default function NotesPage() {
       </AnimatePresence>
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 z-20 p-3 sm:p-4 flex justify-between items-center w-full bg-transparent  mb-10">
+      <nav className="fixed top-0 left-0 z-20 p-3 sm:p-4 flex justify-between items-center w-full bg-transparent mb-10">
         {/* Mobile Menu Button */}
         <button
           onClick={() => setIsMenuOpen(true)}
@@ -405,7 +411,10 @@ export default function NotesPage() {
           </h1>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="mb-6 sm:mb-8 space-y-3 sm:space-y-4"
+          >
             <input
               type="text"
               name="title"
@@ -430,11 +439,21 @@ export default function NotesPage() {
               required
               style={{ fontSize: "16px" }} // Prevents iOS zoom
             />
-            
+
+            {/* Add AI Summarizer component HERE */}
+            <AISummarizer
+              text={newNote.content}
+              onTextUpdate={handleAITextUpdate}
+            />
+
             {/* Date Time Inputs - Stack on mobile */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <div className="flex-1">
-                <label className={`block mb-1 text-sm ${darkMode ? "text-white" : "text-black"}`}>
+                <label
+                  className={`block mb-1 text-sm ${
+                    darkMode ? "text-white" : "text-black"
+                  }`}
+                >
                   Start Time
                 </label>
                 <input
@@ -447,7 +466,11 @@ export default function NotesPage() {
                 />
               </div>
               <div className="flex-1">
-                <label className={`block mb-1 text-sm ${darkMode ? "text-white" : "text-black"}`}>
+                <label
+                  className={`block mb-1 text-sm ${
+                    darkMode ? "text-white" : "text-black"
+                  }`}
+                >
                   End Time
                 </label>
                 <input
@@ -460,7 +483,7 @@ export default function NotesPage() {
                 />
               </div>
             </div>
-            
+
             <label className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -469,11 +492,15 @@ export default function NotesPage() {
                 onChange={handleInputChange}
                 className="w-4 h-4"
               />
-              <span className={`text-sm sm:text-base ${darkMode ? "text-white" : "text-black"}`}>
+              <span
+                className={`text-sm sm:text-base ${
+                  darkMode ? "text-white" : "text-black"
+                }`}
+              >
                 Make Public
               </span>
             </label>
-            
+
             <button
               type="submit"
               className={`w-full py-2 sm:py-3 px-4 rounded-full font-medium transition-all text-sm sm:text-base ${
@@ -491,7 +518,11 @@ export default function NotesPage() {
           {/* Notes List */}
           <div className="space-y-3 sm:space-y-4 max-h-[50vh] sm:max-h-[60vh] overflow-y-auto pr-1 sm:pr-2">
             {filteredNotes.length === 0 ? (
-              <div className={`text-center py-8 rounded-lg ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+              <div
+                className={`text-center py-8 rounded-lg ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 No notes found. {searchTerm && "Try a different search."}
               </div>
             ) : (
@@ -502,11 +533,15 @@ export default function NotesPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.2 }}
                   className={`p-3 sm:p-4 rounded-lg ${
-                    darkMode ? "bg-black/80 text-white" : "bg-white/60 text-black"
+                    darkMode
+                      ? "bg-black/80 text-white"
+                      : "bg-white/60 text-black"
                   } shadow`}
                 >
                   <div className="flex justify-between items-start gap-2">
-                    <h3 className="font-bold text-sm sm:text-base truncate">{note.title}</h3>
+                    <h3 className="font-bold text-sm sm:text-base truncate">
+                      {note.title}
+                    </h3>
                     <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                       <button
                         onClick={() => handleEdit(note)}
@@ -524,7 +559,9 @@ export default function NotesPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="mt-2 text-sm sm:text-base break-words whitespace-pre-wrap">{note.content}</p>
+                  <p className="mt-2 text-sm sm:text-base break-words whitespace-pre-wrap">
+                    {note.content}
+                  </p>
                   {note.startTime && note.endTime && (
                     <p className="text-xs sm:text-sm mt-2 italic text-gray-400">
                       {new Date(note.startTime).toLocaleString()} -{" "}
@@ -532,7 +569,9 @@ export default function NotesPage() {
                     </p>
                   )}
                   {note.isPublic && (
-                    <p className="text-xs sm:text-sm mt-1 italic text-green-400">Public</p>
+                    <p className="text-xs sm:text-sm mt-1 italic text-green-400">
+                      Public
+                    </p>
                   )}
                 </motion.div>
               ))
@@ -573,6 +612,4 @@ export default function NotesPage() {
       </div>
     </div>
   );
-
 }
-
