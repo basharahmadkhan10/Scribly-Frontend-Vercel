@@ -63,19 +63,25 @@ const AISummarizer = ({ text, onTextUpdate }) => {
       id: 'summarize',
       label: 'Summarize',
       icon: <Sparkles size={18} />,
-      color: 'blue'
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
+      borderColor: 'border-blue-200'
     },
     {
       id: 'improve',
       label: 'Improve',
       icon: <Zap size={18} />,
-      color: 'green'
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-700',
+      borderColor: 'border-green-200'
     },
     {
       id: 'keyPoints',
       label: 'Key Points',
       icon: <List size={18} />,
-      color: 'purple'
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-700',
+      borderColor: 'border-purple-200'
     }
   ];
 
@@ -101,14 +107,16 @@ const AISummarizer = ({ text, onTextUpdate }) => {
             className={`
               p-3 rounded-lg border transition-all
               ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'}
-              bg-${feature.color}-50 text-${feature.color}-700 border-${feature.color}-200
+              ${feature.bgColor} ${feature.textColor} ${feature.borderColor}
               flex flex-col items-center gap-2
             `}
           >
             {loading ? (
               <Loader2 className="animate-spin" size={18} />
             ) : (
-              feature.icon
+              <div className={feature.textColor}>
+                {feature.icon}
+              </div>
             )}
             <span className="text-sm font-medium">{feature.label}</span>
           </button>
